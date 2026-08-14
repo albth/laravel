@@ -315,10 +315,7 @@ def figure_heatmap():
     # ligand / receptor divider
     ax.plot([0, len(REGIONS)], [N_LIG, N_LIG], color=SURFACE, lw=2.2, zorder=4)
 
-    ax.set_title("Interleukin ligands and receptors\n"
-                 "vcAst (JD1884) vs pan-astrocyte (JD130)\n"
-                 f"{SEL['subtitle']}",
-                 pad=22, fontsize=8, color=INK, loc="left", x=-0.02)
+    # no title — the heatmap is captioned in the manuscript figure legend
 
     colorbar(fig, [0.70, 0.50, 0.035, 0.30])
 
