@@ -54,6 +54,7 @@ mpl.rcParams.update({
     "ytick.labelsize": 7,
     "legend.fontsize": 6.5,
     "axes.linewidth": 0.6,
+    "hatch.linewidth": 0.4,
     "xtick.major.width": 0.6,
     "ytick.major.width": 0.6,
     "xtick.major.size": 2.5,
@@ -67,7 +68,8 @@ mpl.rcParams.update({
 INK = "#1b1b1b"
 INK_MUTED = "#6b6b6b"
 SURFACE = "#ffffff"
-MISSING = "#e9e9ec"   # gene did not pass the threshold in that region
+MISSING = "#e9e9ec"   # gene tested in that region but did not pass
+ABSENT = "#dcdce1"    # gene absent from the pre-filtered cortical table
 
 # Diverging ramp: cool = pan-astrocyte, neutral grey midpoint, warm = vcAst.
 CMAP = LinearSegmentedColormap.from_list(
@@ -141,23 +143,57 @@ ctx = load_region(CTX_XLSX, "|FC| >1", "Cortex")
 stri = load_region(STR_XLSX, "|FC| >2", "Striatum")
 
 tidy = pd.concat([ctx, stri], ignore_index=True)
-tidy["passes"] = (tidy["log2FC"].abs() > LFC_CUT) & (tidy["max_expr"] >= EXPR_FLOOR)
-
-kept = tidy[tidy["passes"]].copy()
-
-# gene order: ligands then receptors, each sorted by mean vcAst enrichment
-mean_lfc = kept.groupby("Gene")["log2FC"].mean()
-cls = kept.drop_duplicates("Gene").set_index("Gene")["Class"]
-order = []
-for grp in ("Ligand", "Receptor"):
-    genes = [g for g in mean_lfc.index if cls[g] == grp]
-    order += sorted(genes, key=lambda g: -mean_lfc[g])
-GENES = order
-CLASS_OF = {g: cls[g] for g in GENES}
-N_LIG = sum(1 for g in GENES if CLASS_OF[g] == "Ligand")
 
 REGIONS = ["Cortex", "Striatum"]
 lookup = {(r["Gene"], r["Region"]): r for _, r in tidy.iterrows()}
+
+# --------------------------------------------------------------------------- #
+# gene selection — two panels of the same design
+#
+#   "logfc"  effect-size driven: |log2FC| > 1 in at least one region
+#   "sig"    significance driven: FDR < 0.05 in at least one region, no
+#            fold-change requirement
+#
+# Both additionally require the EXPR_FLOOR detection floor.
+# --------------------------------------------------------------------------- #
+SELECTIONS = {
+    "logfc": dict(
+        suffix="",
+        test=lambda d: d["log2FC"].abs() > LFC_CUT,
+        grey=f"|log$_2$FC| ≤ {LFC_CUT:.0f}",
+        subtitle=f"|log$_2$FC| > {LFC_CUT:.0f}",
+    ),
+    "sig": dict(
+        suffix="_significant",
+        test=lambda d: d["FDR"] < 0.05,
+        grey="FDR ≥ 0.05",
+        subtitle="FDR < 0.05, no fold-change cut",
+    ),
+}
+
+# populated by select(); the drawing functions read these
+SEL = GENES = CLASS_OF = kept = None
+N_LIG = 0
+
+
+def select(mode):
+    """Set the module-level gene set / ordering for one selection mode."""
+    global SEL, GENES, CLASS_OF, N_LIG, kept
+    SEL = SELECTIONS[mode]
+    tidy["passes"] = SEL["test"](tidy) & (tidy["max_expr"] >= EXPR_FLOOR)
+    lookup.update({(r["Gene"], r["Region"]): r for _, r in tidy.iterrows()})
+    kept = tidy[tidy["passes"]].copy()
+
+    # ligands then receptors, each ordered by mean vcAst enrichment
+    mean_lfc = kept.groupby("Gene")["log2FC"].mean()
+    cls = kept.drop_duplicates("Gene").set_index("Gene")["Class"]
+    order = []
+    for grp in ("Ligand", "Receptor"):
+        genes = [g for g in mean_lfc.index if cls[g] == grp]
+        order += sorted(genes, key=lambda g: -mean_lfc[g])
+    GENES = order
+    CLASS_OF = {g: cls[g] for g in GENES}
+    N_LIG = sum(1 for g in GENES if CLASS_OF[g] == "Ligand")
 
 
 def cell(gene, region):
@@ -245,14 +281,21 @@ def figure_heatmap():
     fig = plt.figure(figsize=(3.15, 0.155 * n + 1.15))
     ax = fig.add_axes([0.30, 0.075, 0.30, 0.855])
 
+    n_absent = 0
     for j, region in enumerate(REGIONS):
         for i, gene in enumerate(GENES):
             rec = cell(gene, region)
             passes = rec is not None and bool(rec["passes"])
             face = CMAP(NORM(rec["log2FC"])) if passes else MISSING
+            # a gene absent from the pre-filtered cortical table was never
+            # tested here — hatch it so it is not read as "tested, n.s."
+            hatch = None
+            if rec is None:
+                face, hatch = ABSENT, "////"
+                n_absent += 1
             ax.add_patch(Rectangle((j + 0.03, i + 0.03), 0.94, 0.94,
                                    facecolor=face, edgecolor=SURFACE,
-                                   linewidth=0.8, zorder=2))
+                                   hatch=hatch, linewidth=0.8, zorder=2))
             if passes:
                 s = stars(rec["FDR"])
                 if s:
@@ -272,24 +315,29 @@ def figure_heatmap():
     # ligand / receptor divider
     ax.plot([0, len(REGIONS)], [N_LIG, N_LIG], color=SURFACE, lw=2.2, zorder=4)
 
-    ax.set_title("Interleukin ligands and receptors\nvcAst (JD1884) vs pan-astrocyte (JD130)",
+    ax.set_title("Interleukin ligands and receptors\n"
+                 "vcAst (JD1884) vs pan-astrocyte (JD130)\n"
+                 f"{SEL['subtitle']}",
                  pad=22, fontsize=8, color=INK, loc="left", x=-0.02)
 
     colorbar(fig, [0.70, 0.50, 0.035, 0.30])
 
+    handles = [Patch(facecolor=MISSING, edgecolor="none", label=SEL["grey"])]
+    if n_absent:
+        handles.append(Patch(facecolor=ABSENT, edgecolor=SURFACE, hatch="////",
+                             linewidth=0.5, label="not tested"))
     legend = fig.legend(
-        handles=[Patch(facecolor=MISSING, edgecolor="none",
-                       label=f"|log$_2$FC| ≤ {LFC_CUT:.0f}")],
-        loc="lower left", bbox_to_anchor=(0.655, 0.395), frameon=False,
-        handlelength=1.0, handletextpad=0.5,
+        handles=handles,
+        loc="lower left", bbox_to_anchor=(0.655, 0.335), frameon=False,
+        handlelength=1.0, handletextpad=0.5, labelspacing=0.6,
     )
     for t in legend.get_texts():
         t.set_color(INK)
-    fig.text(0.655, 0.335, "FDR", fontsize=6.5, color=INK)
+    fig.text(0.655, 0.255, "FDR", fontsize=6.5, color=INK)
     for k, txt in enumerate(("*    < 0.05", "**   < 0.001", "***  < 10$^{-4}$")):
-        fig.text(0.655, 0.288 - 0.040 * k, txt, fontsize=6.5, color=INK,
+        fig.text(0.655, 0.208 - 0.040 * k, txt, fontsize=6.5, color=INK,
                  family="monospace")
-    save(fig, "Fig1_IL_logFC_heatmap")
+    save(fig, "Fig1_IL_logFC_heatmap" + SEL["suffix"])
 
 
 # --------------------------------------------------------------------------- #
@@ -317,6 +365,7 @@ def figure_dotplot():
     # FDR ≥ 0.05 can carry a grey ring (identity never by colour alone)
     sig = {"x": [], "y": [], "c": [], "s": []}
     ns = {"x": [], "y": [], "c": [], "s": []}
+    n_missing = 0
     for j, region in enumerate(REGIONS):
         for i, gene in enumerate(GENES):
             rec = cell(gene, region)
@@ -326,6 +375,7 @@ def figure_dotplot():
             if v is None:      # effect passes but FDR not estimable
                 ax.plot(j + 0.5, i + 0.5, marker="x", ms=2.6, mew=0.7,
                         color=INK_MUTED, zorder=3)
+                n_missing += 1
                 continue
             tgt = sig if rec["FDR"] < 0.05 else ns
             tgt["x"].append(j + 0.5)
@@ -353,7 +403,9 @@ def figure_dotplot():
     class_bracket(fig, ax, n)
     ax.axhline(N_LIG, color=INK_MUTED, lw=0.6, ls=(0, (3, 2)), zorder=1)
 
-    ax.set_title("Interleukin ligands and receptors\nvcAst (JD1884) vs pan-astrocyte (JD130)",
+    ax.set_title("Interleukin ligands and receptors\n"
+                 "vcAst (JD1884) vs pan-astrocyte (JD130)\n"
+                 f"{SEL['subtitle']}",
                  pad=22, fontsize=8, color=INK, loc="left", x=-0.02)
 
     colorbar(fig, [0.66, 0.53, 0.033, 0.28])
@@ -363,14 +415,17 @@ def figure_dotplot():
                       markeredgewidth=0.5, markersize=np.sqrt(area(b)),
                       label=f"{b:g}" + ("  (FDR 0.05)" if b == 1.3 else ""))
                for b in SIZE_BREAKS]
-    handles += [
-        Line2D([], [], linestyle="none", marker="o", color=INK_MUTED,
-               markerfacecolor="#c9c9cf", markeredgecolor=INK_MUTED,
-               markeredgewidth=0.6, markersize=np.sqrt(area(0.8)),
-               label="n.s. (grey ring)"),
-        Line2D([], [], linestyle="none", marker="x", color=INK_MUTED,
-               markersize=2.6, markeredgewidth=0.7, label="FDR not estimable"),
-    ]
+    # these two only apply when the selection can admit non-significant cells
+    if ns["x"]:
+        handles.append(
+            Line2D([], [], linestyle="none", marker="o", color=INK_MUTED,
+                   markerfacecolor="#c9c9cf", markeredgecolor=INK_MUTED,
+                   markeredgewidth=0.6, markersize=np.sqrt(area(0.8)),
+                   label="n.s. (grey ring)"))
+    if n_missing:
+        handles.append(
+            Line2D([], [], linestyle="none", marker="x", color=INK_MUTED,
+                   markersize=2.6, markeredgewidth=0.7, label="FDR not estimable"))
     leg = fig.legend(handles=handles, title="-log$_{10}$FDR",
                      loc="upper left", bbox_to_anchor=(0.63, 0.47),
                      frameon=False, handlelength=1.0, handletextpad=0.6,
@@ -379,7 +434,7 @@ def figure_dotplot():
     leg.get_title().set_color(INK)
     for t in leg.get_texts():
         t.set_color(INK)
-    save(fig, "Fig2_IL_dotplot")
+    save(fig, "Fig2_IL_dotplot" + SEL["suffix"])
 
 
 # --------------------------------------------------------------------------- #
@@ -462,33 +517,38 @@ def figure_expression():
         t.set_color(INK)
         t.set_fontsize(6.5)
 
-    fig.text(0.235, 1.055, "Interleukin ligand / receptor expression per replicate",
+    fig.text(0.235, 1.055, "Interleukin ligand / receptor expression per replicate\n"
+                           f"{SEL['subtitle']}",
              fontsize=8, color=INK, ha="left", va="bottom")
-    save(fig, "Fig3_IL_expression_zscore")
+    save(fig, "Fig3_IL_expression_zscore" + SEL["suffix"])
 
 
 # --------------------------------------------------------------------------- #
 if __name__ == "__main__":
-    print(f"IL genes passing |log2FC| > {LFC_CUT:g} and expression ≥ {EXPR_FLOOR:g}: "
-          f"{len(GENES)}  ({N_LIG} ligands, {len(GENES) - N_LIG} receptors)")
-    for region in REGIONS:
-        sub = kept[kept["Region"] == region]
-        print(f"  {region:9s} n = {len(sub):2d}  "
-              f"vcAst-enriched {int((sub['log2FC'] > 0).sum()):2d} / "
-              f"pan-astro-enriched {int((sub['log2FC'] < 0).sum()):2d}")
+    for mode, label in (("logfc", f"|log2FC| > {LFC_CUT:g}"),
+                        ("sig", "FDR < 0.05 (no fold-change cut)")):
+        select(mode)
+        print(f"\n[{mode}]  {label}, expression ≥ {EXPR_FLOOR:g}: "
+              f"{len(GENES)} genes ({N_LIG} ligands, {len(GENES) - N_LIG} receptors)")
+        for region in REGIONS:
+            sub = kept[kept["Region"] == region]
+            print(f"  {region:9s} n = {len(sub):2d}  "
+                  f"vcAst-enriched {int((sub['log2FC'] > 0).sum()):2d} / "
+                  f"pan-astro-enriched {int((sub['log2FC'] < 0).sum()):2d}")
 
-    figure_heatmap()
-    figure_dotplot()
-    figure_expression()
+        figure_heatmap()
+        figure_dotplot()
+        figure_expression()
 
-    src = tidy[tidy["Gene"].isin(GENES)].copy()
-    src = src.assign(order=src["Gene"].map({g: i for i, g in enumerate(GENES)}))
-    src = src.sort_values(["order", "Region"]).drop(columns="order")
-    src = src.rename(columns={
-        "log2FC": "log2FC_vcAst_over_panAstro",
-        "mean_pan": "mean_JD130_panAstro",
-        "mean_vc": "mean_JD1884_vcAst",
-        "passes": "passes_filters",
-    })
-    src.to_csv(FIGDIR / "source_data_IL_genes.csv", index=False)
-    print("  wrote figures/source_data_IL_genes.csv")
+        src = tidy[tidy["Gene"].isin(GENES)].copy()
+        src = src.assign(order=src["Gene"].map({g: i for i, g in enumerate(GENES)}))
+        src = src.sort_values(["order", "Region"]).drop(columns="order")
+        src = src.rename(columns={
+            "log2FC": "log2FC_vcAst_over_panAstro",
+            "mean_pan": "mean_JD130_panAstro",
+            "mean_vc": "mean_JD1884_vcAst",
+            "passes": "passes_filters",
+        })
+        name = f"source_data_IL_genes{SEL['suffix']}.csv"
+        src.to_csv(FIGDIR / name, index=False)
+        print(f"  wrote figures/{name}")

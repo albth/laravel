@@ -45,38 +45,63 @@ means the gene was measured and did not reach the cut.
   (lncRNA), `Il18bp` (soluble binding protein).
 * `Il6st` (gp130) is classed as a receptor; `Il1rn` (IL-1RA) is classed as a
   secreted ligand despite the `r` in its symbol.
-* Cut-offs: **|log2FC| > 1** (as requested) **and** a detection floor of
-  **group-mean normalised counts ≥ 10** in at least one genotype. The floor removes
-  genes driven by 1–3 stray reads (e.g. `Il9r`, max 2.1 counts). It is set by
-  `EXPR_FLOOR` in the script — set it to `0` to reproduce the unfiltered list.
+* Detection floor: **group-mean normalised counts ≥ 10** in at least one genotype,
+  applied in both selections below. It removes genes driven by 1–3 stray reads
+  (e.g. `Il9r`, max 2.1 counts). Set `EXPR_FLOOR = 0` in the script to disable it.
 
-23 genes pass (9 ligands, 14 receptors): **Cortex** n = 10, all vcAst-enriched;
-**Striatum** n = 22, 17 vcAst-enriched / 5 pan-astrocyte-enriched.
+## Two selections, same figure design
+
+`python3 il_figures.py` emits **both** sets in one run.
+
+| Selection | Criterion (in ≥ 1 region) | Genes | File suffix |
+|---|---|---|---|
+| Effect size | \|log2FC\| > 1 | 23 (9 ligands, 14 receptors) | *(none)* |
+| Significance | FDR < 0.05, **no fold-change cut** | 21 (11 ligands, 10 receptors) | `_significant` |
+
+**Effect-size set** — Cortex n = 10, all vcAst-enriched; Striatum n = 22,
+17 vcAst / 5 pan-astrocyte.
+
+**Significance set** — Cortex n = 10, all vcAst-enriched; Striatum n = 17,
+11 vcAst / 6 pan-astrocyte. Relative to the effect-size set it *adds* five striatal
+genes that are significant with sub-2-fold effects — `Il33` (log2FC −0.80,
+FDR 3×10⁻⁵), `Il18` (−0.69), `Il17rc` (−0.68), `Il13ra1` (+0.95), `Il2` (+0.99) —
+and *drops* seven that clear the fold-change bar on unstable statistics
+(`Il23a`, `Il1rl2`, `Il1rap`, `Il12rb1`, `Il6ra`, `Il1r2`, `Il17re`). `Il33` and
+`Il18` are the most notable additions: both are highly expressed astrocyte cytokines
+(mean 18,700 and 10,700 normalised counts) and both are pan-astrocyte-enriched.
+
+Because the cortical workbook is pre-filtered at |log2FC| > 1, the cortical column of
+the significance set is unchanged — a genuinely significant cortical IL gene with a
+sub-2-fold effect could not appear in either figure. Recovering those needs the
+unfiltered cortical table.
 
 ## Figures
 
 All outputs are written to `figures/` as 300 dpi PNG **and** vector PDF with Type-42
 (editable) fonts, sized for a single journal column.
 
-**`Fig1_IL_logFC_heatmap`** — Heatmap of interleukin ligand and receptor log2FC in
-cortex and striatum. Colour, log2FC of vcAst (JD1884) over pan-astrocyte (JD130);
-warm = vcAst-enriched, cool = pan-astrocyte-enriched, scale saturated at ±6. Rows are
-split into ligands and receptors and ordered by mean vcAst enrichment. Grey, gene did
-not reach |log2FC| > 1 in that region. \*FDR < 0.05, \*\*FDR < 0.001,
-\*\*\*FDR < 10⁻⁴; absence of a star means FDR ≥ 0.05 or not estimable.
+**`Fig1_IL_logFC_heatmap[_significant]`** — Heatmap of interleukin ligand and receptor
+log2FC in cortex and striatum. Colour, log2FC of vcAst (JD1884) over pan-astrocyte
+(JD130); warm = vcAst-enriched, cool = pan-astrocyte-enriched, scale saturated at ±6
+in both figures so the two are directly comparable. Rows are split into ligands and
+receptors and ordered by mean vcAst enrichment. Plain grey, gene was measured in that
+region but did not meet the selection criterion; hatched grey, gene is absent from the
+pre-filtered cortical table and was therefore not tested there. \*FDR < 0.05,
+\*\*FDR < 0.001, \*\*\*FDR < 10⁻⁴.
 
-**`Fig2_IL_dotplot`** — Dot plot of the same genes and contrasts. Dot colour, log2FC
-(vcAst / pan-astrocyte); dot area, −log₁₀FDR. Dots with FDR ≥ 0.05 carry a grey ring;
-× marks an effect that passes the fold-change cut but for which FDR was not estimable
-(zero counts in one genotype).
+**`Fig2_IL_dotplot[_significant]`** — Dot plot of the same genes and contrasts. Dot
+colour, log2FC (vcAst / pan-astrocyte); dot area, −log₁₀FDR. In the effect-size
+figure, dots with FDR ≥ 0.05 carry a grey ring and × marks an effect for which FDR
+was not estimable (zero counts in one genotype); neither case can arise in the
+significance figure, so those keys are omitted there.
 
-**`Fig3_IL_expression_zscore`** — Per-replicate expression of the same genes,
-n = 4 per genotype per region, plotted as the row z-score of log₂(normalised
+**`Fig3_IL_expression_zscore[_significant]`** — Per-replicate expression of the same
+genes, n = 4 per genotype per region, plotted as the row z-score of log₂(normalised
 counts + 1) computed within each region. Grey rows in the cortical panel are genes
 absent from the pre-filtered cortical table.
 
-**`source_data_IL_genes.csv`** — per-gene, per-region source data behind all three
-figures: sign-flipped log2FC, FDR, group-mean expression, and the pass/fail flag.
+**`source_data_IL_genes[_significant].csv`** — per-gene, per-region source data behind
+each set: sign-flipped log2FC, FDR, group-mean expression, and the pass/fail flag.
 
 ## Notes for interpretation
 
@@ -87,4 +112,8 @@ figures: sign-flipped log2FC, FDR, group-mean expression, and the pass/fail flag
 * `Il20rb` and `Il1rl2` show the largest striatal effects but sit at 0 counts in all
   four JD130 samples, which inflates log2FC and makes the FDR unstable — treat as
   qualitative presence/absence, and confirm by qPCR or RNAscope before quoting a
-  fold change.
+  fold change. (`Il1rl2` has no estimable FDR and so drops out of the significance
+  set; `Il20rb` survives at FDR 0.042 but rests on the same zero-count denominator.)
+* The significance set is the more conservative figure for a main panel; the
+  effect-size set is the better supplementary companion, since between them they show
+  which calls are driven by magnitude and which by consistency.
