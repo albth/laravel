@@ -1,0 +1,150 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+:root{--bg:#0d1220;--panel:#111a2e;--fg:#eef1f7;--muted:#9aa4b8;--line:#26314a;
+--vessel:#c33a45;--soma:#8a5cf0;--contact:#ff8a3d;--endfoot:#f5c542;--proc:#7fd3e6}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--fg);font-family:"Lato","Segoe UI",Helvetica,Arial,sans-serif}
+canvas{position:absolute;left:0;top:0}
+.hdr{position:absolute;top:34px;width:880px;display:grid;gap:6px}
+.hdr.l{left:48px}.hdr.r{left:1008px}
+.kick{font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--endfoot);font-weight:700}
+.ttl{font-family:Georgia,"DejaVu Serif",serif;font-size:40px;font-weight:700;line-height:1.1}
+.sub{font-size:21px;color:var(--muted)}
+.legend{position:absolute;top:186px;display:grid;gap:9px;font-size:19px}
+.legend.l{left:48px}.legend.r{left:1008px}
+.legend div{display:flex;align-items:center;gap:10px}
+.legend i{width:20px;height:20px;border-radius:4px;display:inline-block}
+.divider{position:absolute;left:959px;top:30px;bottom:150px;width:2px;background:var(--line)}
+.foot{position:absolute;left:0;right:0;bottom:0;height:150px;background:#0a0f1b;border-top:1px solid var(--line)}
+.cap{position:absolute;left:60px;right:60px;top:26px;text-align:center;font-size:27px;font-weight:600;line-height:1.3}
+.data{position:absolute;left:60px;right:60px;bottom:16px;font-size:15px;color:#7f8aa2;text-align:left}
+svg#ov{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none}
+.co{font-size:19px;font-weight:700}
+.stats{position:absolute;left:0;right:0;top:640px;display:flex;justify-content:center;gap:28px;opacity:0}
+.stat{background:rgba(10,15,27,.92);border:1px solid var(--line);border-radius:12px;padding:16px 22px;width:400px}
+.stat h4{margin:0 0 8px;font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat .row{display:flex;justify-content:space-between;font-size:21px;margin:4px 0}
+.stat b{font-variant-numeric:tabular-nums}
+.inset{position:absolute;top:150px;width:300px;opacity:0;background:#0a0f1b;border:1px solid #3a4560;border-radius:8px;padding:6px 6px 4px;font-size:14px;color:#c9d0de}
+.inset img{width:300px;height:300px;display:block;border-radius:4px}
+.inset.l{left:640px}.inset.r{left:1600px}
+.scale{position:absolute;bottom:170px;font-size:16px;color:var(--muted)}
+.scale.l{left:60px}.scale.r{left:1020px}
+.scale span{display:block;height:4px;background:var(--fg);margin-bottom:6px;border-radius:2px}
+</style></head><body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<svg id="ov"></svg>
+<div class="divider"></div>
+<div class="hdr l"><div class="kick">Typical astrocyte</div><div class="ttl" id="tL">Endfeet only</div><div class="sub" id="sL"></div></div>
+<div class="hdr r"><div class="kick">vc-astrocyte</div><div class="ttl" id="tR">Cell body on a vessel, plus endfeet</div><div class="sub" id="sR"></div></div>
+<div class="legend l" id="lgL"></div><div class="legend r" id="lgR"></div>
+<div class="scale l"><span id="sbL"></span>20 µm</div><div class="scale r"><span id="sbR"></span>20 µm</div>
+<div class="inset l" id="iLe"><img id="iLeImg">EM section at endfoot 1 · same colours · 5 µm bar</div>
+<div class="inset r" id="iRe"><img id="iReImg">EM section at endfoot 1 · same colours · 5 µm bar</div>
+<div class="inset l" id="iLs"><img id="iLsImg">EM section through the cell body · 5 µm bar</div>
+<div class="inset r" id="iRs"><img id="iRsImg">EM section at the soma contact · 5 µm bar</div>
+<div class="stats" id="stats"></div>
+<div class="foot"><div class="cap" id="cap"></div><div class="data" id="data"></div></div>
+<script type="module">
+import * as THREE from './three.module.js';
+const P=new URLSearchParams(location.search);
+const names=[P.get('L')||'typ',P.get('R')||'vc'];
+const COL={vessel:0xc33a45,soma:0x8a5cf0,contact:0xff8a3d,endfoot:0xf5c542,proc:0x7fd3e6};
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(1);renderer.setSize(1920,1080,false);renderer.setScissorTest(true);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+async function bin(u,T){const b=await (await fetch(u)).arrayBuffer();return new T(b);}
+const panels=[];
+for(const [pi,n] of names.entries()){
+  const meta=await (await fetch(n+'_meta.json')).json();
+  const scene=new THREE.Scene();
+  const av=await bin(n+'_astro_v.bin',Float32Array), af=await bin(n+'_astro_f.bin',Uint32Array);
+  const vv=await bin(n+'_vessel_v.bin',Float32Array), vf=await bin(n+'_vessel_f.bin',Uint32Array);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(av,3));g.setIndex(new THREE.BufferAttribute(af,1));g.computeVertexNormals();
+  const mats={},meshes={};
+  const spec={0:['proc',{transparent:true,opacity:.3,depthWrite:false}],1:['soma',{transparent:true}],2:['endfoot',{transparent:true,emissive:0x3a2a00}],3:['contact',{transparent:true,emissive:0x3a1500}],4:['proc',{transparent:true,opacity:.3,depthWrite:false}]};
+  for(const k of [1,2,3,0,4]){
+    const [a,b]=meta.class_ranges[k]; if(b<=a) continue;
+    const gg=g.clone(); gg.setIndex(new THREE.BufferAttribute(af.slice(a*3,b*3),1));
+    const m=new THREE.MeshStandardMaterial({color:COL[spec[k][0]],roughness:.55,metalness:0,side:THREE.DoubleSide,...spec[k][1]});
+    const mesh=new THREE.Mesh(gg,m); mesh.renderOrder=(k==0||k==4)?3:2; scene.add(mesh); mats[k]=m; meshes[k]=mesh;
+  }
+  const vg=new THREE.BufferGeometry();vg.setAttribute('position',new THREE.BufferAttribute(vv,3));vg.setIndex(new THREE.BufferAttribute(vf,1));vg.computeVertexNormals();
+  const vm=new THREE.MeshStandardMaterial({color:COL.vessel,roughness:.6,side:THREE.DoubleSide,transparent:true,opacity:1});
+  const vmesh=new THREE.Mesh(vg,vm); vmesh.renderOrder=1; scene.add(vmesh);
+  scene.add(new THREE.HemisphereLight(0xdfe8ff,0x1a2033,1.3));
+  const key=new THREE.DirectionalLight(0xffffff,1.6); scene.add(key); scene.add(key.target);
+  const cam=new THREE.PerspectiveCamera(26,960/930,1,2000);
+  panels.push({meta,scene,mats,meshes,vm,key,cam,x:pi*960});
+}
+window.META=panels.map(p=>p.meta);
+const ov=document.getElementById('ov');
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const ramp=(t,a,b)=>clamp((t-a)/(b-a));
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+let CFG=null;
+window.setup=(cfg)=>{CFG=cfg;
+  document.getElementById('sL').textContent=cfg.subL; document.getElementById('sR').textContent=cfg.subR;
+  document.getElementById('data').textContent=cfg.data;
+  const lg=(id,items)=>{document.getElementById(id).innerHTML=items.map(([c,t,k])=>`<div data-k="${k}"><i style="background:${c}"></i>${t}</div>`).join('');};
+  const base=[['var(--vessel)','Vessel lumen surface (EM)','v'],['var(--proc)','Astrocyte processes','p'],['var(--soma)','Cell body','s']];
+  lg('lgL',[...base,['var(--endfoot)','Endfoot on a vessel','e']]);
+  lg('lgR',[...base,['var(--contact)','Cell body on the vessel','c'],['var(--endfoot)','Endfoot on a vessel','e']]);
+  document.getElementById('stats').innerHTML=cfg.stats;
+  for(const [id,src] of Object.entries(cfg.insets)) document.getElementById(id+'Img').src=src;
+};
+function proj(p,v3){const v=v3.clone().project(p.cam);return [p.x+ (v.x*.5+.5)*960, 130+(1-(v.y*.5+.5))*930, v.z];}
+window.renderAt=(t)=>{
+  const A=CFG.timeline; const ang=CFG.ang0+t*CFG.spin; const dist=CFG.dist*(1-0.18*ease(ramp(t,A.zoom0,A.zoom1))+0.18*ease(ramp(t,A.unzoom0,A.unzoom1)));
+  const fadeV=ramp(t,0,1.5), fadeA=ramp(t,A.astro,A.astro+2), fadeE=ramp(t,A.endfeet,A.endfeet+1.5), fadeC=ramp(t,A.contact,A.contact+1.5);
+  const hideP=ramp(t,A.hide,A.hide+2)*(1-ramp(t,A.show,A.show+2));
+  let svg='';
+  for(const [pi,p] of panels.entries()){
+    const el=0.32; p.cam.position.set(Math.sin(ang)*Math.cos(el)*dist, -Math.sin(el)*dist, Math.cos(ang)*Math.cos(el)*dist);
+    p.cam.up.set(0,-1,0); p.cam.lookAt(0,0,0); p.cam.updateMatrixWorld();
+    p.key.position.copy(p.cam.position).add(new THREE.Vector3(30,-60,0)); p.key.target.position.set(0,0,0);
+    const va=fadeV*(1-(1-CFG.vesselAlpha)*fadeA); p.vm.opacity=va; p.vm.transparent=true; p.vm.depthWrite=va>=0.999;
+    for(const k in p.meshes){const m=p.mats[k];
+      if(k=='0'||k=='4'){m.opacity=CFG.procAlpha*fadeA*(1-0.85*hideP); p.meshes[k].visible=m.opacity>0.005;}
+      else if(k=='1'){m.opacity=fadeA;p.meshes[k].visible=fadeA>0;}
+      else if(k=='2'){const e=fadeE; m.color.set(COL.endfoot).lerp(new THREE.Color(COL.proc),1-e); m.opacity=fadeA; p.meshes[k].visible=fadeA>0; m.emissiveIntensity=1+1.5*Math.max(0,Math.sin((t-A.endfeet)*3))*ramp(t,A.endfeet,A.endfeet+.3)*(1-ramp(t,A.endfeet+4,A.endfeet+5));}
+      else if(k=='3'){const c=fadeC; m.color.set(COL.contact).lerp(new THREE.Color(COL.soma),1-c); m.opacity=fadeA; p.meshes[k].visible=fadeA>0;}
+    }
+    renderer.setViewport(p.x,0,960,950); renderer.setScissor(p.x,0,960,950);
+    p.cam.aspect=960/950; p.cam.updateProjectionMatrix();
+    renderer.setClearColor(0x0d1220,1); renderer.clear(); renderer.render(p.scene,p.cam);
+    // scale bar: 20 µm at target depth
+    const a=proj(p,new THREE.Vector3(0,0,0)); const right=new THREE.Vector3().setFromMatrixColumn(p.cam.matrixWorld,0).multiplyScalar(20);
+    const b=proj(p,right); document.getElementById(pi?'sbR':'sbL').style.width=Math.hypot(b[0]-a[0],b[1]-a[1]).toFixed(1)+'px';
+    // callouts
+    const lab=[];
+    const showE=ramp(t,A.endfeet+.5,A.endfeet+1.5)*(1-ramp(t,A.calloutsOff,A.calloutsOff+1));
+    p.meta.sites.filter(s=>s.area>=CFG.minSite).slice(0,CFG.maxSites).forEach((s,i)=>lab.push({pos:s.pos,txt:`endfoot ${i+1} · ${Math.round(s.dist)} µm from nucleus`,col:'#f5c542',a:showE}));
+    const showC=ramp(t,A.contact+.5,A.contact+1.5)*(1-ramp(t,A.calloutsOff,A.calloutsOff+1));
+    if(p.meta.soma_contact) lab.push({pos:p.meta.soma_contact,txt:'cell body on the vessel',col:'#ff8a3d',a:showC});
+    else lab.push({pos:[0,0,0],txt:`cell body · ${CFG.somaGap[pi]} from nearest vessel`,col:'#b79bff',a:showC});
+    const used=[];
+    for(const L of lab){ if(L.a<=0.01) continue; const q=proj(p,new THREE.Vector3(...L.pos)); if(q[2]>1) continue;
+      let lx=q[0]+(q[0]>p.x+480?60:-60), ly=q[1]-60; const w=L.txt.length*10.2+20;
+      if(q[0]<=p.x+480) lx-=w; lx=clamp(lx,p.x+20,p.x+940-w); ly=clamp(ly,330,870);
+      const ins=(ramp(t,A.insetE0,A.insetE0+1)*(1-ramp(t,A.insetE1,A.insetE1+1))+ramp(t,A.insetS0,A.insetS0+1)*(1-ramp(t,A.insetS1,A.insetS1+1)))>0.01;
+      for(const u of used){ if(Math.abs(u-ly)<38) ly=u+40; }
+      if(ins && lx+w>p.x+630 && ly<540) ly=540+used.filter(u=>u>=540&&u<580).length*40;
+      used.push(ly);
+      svg+=`<g opacity="${L.a.toFixed(3)}"><line x1="${q[0]}" y1="${q[1]}" x2="${lx+(lx<q[0]?w:0)}" y2="${ly}" stroke="#fff" stroke-width="2"/><circle cx="${q[0]}" cy="${q[1]}" r="6" fill="none" stroke="#fff" stroke-width="2.5"/>`+
+        `<rect x="${lx}" y="${ly-17}" width="${w}" height="34" rx="7" fill="${L.col}"/><text x="${lx+10}" y="${ly+7}" class="co" fill="#141414">${L.txt}</text></g>`;
+    }
+  }
+  ov.innerHTML=svg;
+  // legend highlighting
+  const on={v:fadeV,p:fadeA,s:fadeA,e:fadeE,c:fadeC};
+  document.querySelectorAll('.legend div').forEach(d=>d.style.opacity=(0.25+0.75*on[d.dataset.k]).toFixed(2));
+  // captions
+  let cap=''; for(const [t0,txt] of CFG.captions){ if(t>=t0) cap=txt; } document.getElementById('cap').textContent=cap;
+  const io=(a,b)=>(ramp(t,a,a+1)*(1-ramp(t,b,b+1))).toFixed(2);
+  for(const id of ['iLe','iRe']) document.getElementById(id).style.opacity=io(A.insetE0,A.insetE1);
+  for(const id of ['iLs','iRs']) document.getElementById(id).style.opacity=io(A.insetS0,A.insetS1);
+  document.getElementById('stats').style.opacity=ramp(t,A.stats,A.stats+1.5).toFixed(2);
+  return true;
+};
+window.READY=true;
+</script></body></html>

@@ -1,0 +1,66 @@
+{
+ "ang0": 0.4,
+ "spin": 0.15,
+ "dist": 250,
+ "maxSites": 4,
+ "minSite": 20,
+ "vesselAlpha": 0.5,
+ "procAlpha": 0.2,
+ "somaGap": [
+  "7.6 µm",
+  "?"
+ ],
+ "timeline": {
+  "astro": 4,
+  "endfeet": 10,
+  "insetE0": 12,
+  "insetE1": 19,
+  "contact": 19,
+  "insetS0": 20.5,
+  "insetS1": 28,
+  "calloutsOff": 28,
+  "hide": 29,
+  "show": 999,
+  "zoom0": 19,
+  "zoom1": 22,
+  "unzoom0": 26,
+  "unzoom1": 29,
+  "stats": 41
+ },
+ "subL": "nucleus 292597 · cell body 7.6 µm from the nearest vessel · 3 endfeet",
+ "subR": "nucleus 493402 · cell body on a capillary · 4 endfeet on other capillaries",
+ "data": "MICrONS minnie65 · astrocyte meshes from seg_m1300 · vessel lumens detected in the EM at 256 nm · endfoot = astrocyte membrane within about 0.7 µm of the lumen wall · same 110 µm view and scale in both panels · nuclei at [192096, 117584, 19808] and [290032, 160848, 22217] (4 × 4 × 40 nm voxels)",
+ "insets": {
+  "iLe": "typA_inset_e.png",
+  "iRe": "vcA_inset_e.png",
+  "iLs": "typA_inset_soma.png",
+  "iRs": "vcA_inset_soma.png"
+ },
+ "stats": "<div class=stat><h4>Cell body on a vessel</h4><div class=row><span>vc candidates, membrane-confirmed</span><b>68%</b></div><div class=row><span>typical astrocytes</span><b>3%</b></div></div>\n<div class=stat><h4>Endfeet away from the cell body</h4><div class=row><span>≥ 1 endfoot: vc / typical</span><b>82% / 66%</b></div><div class=row><span>median per cell: vc / typical</span><b>2 / 2</b></div></div>\n<div class=stat><h4>Where vc-astrocyte endfeet land</h4><div class=row><span>on a different vessel than the soma</span><b>86%</b></div><div class=row><span>median distance from nucleus</span><b>23 µm</b></div></div>",
+ "captions": [
+  [
+   0,
+   "The same 110 µm view around each astrocyte nucleus. Red: vessel lumens traced from the EM"
+  ],
+  [
+   4,
+   "One astrocyte per panel, reconstructed from the MICrONS segmentation"
+  ],
+  [
+   10,
+   "Gold: endfeet, where astrocyte membrane lies on a vessel wall away from the cell body"
+  ],
+  [
+   19,
+   "Orange: the vc-astrocyte's cell body itself lies on a capillary and sheaths it"
+  ],
+  [
+   29,
+   "Fine processes hidden: the vc-astrocyte keeps its endfeet on other capillaries and adds a somatic contact"
+  ],
+  [
+   41,
+   "Across 240 reconstructed astrocytes (120 vc candidates, 120 typical)"
+  ]
+ ]
+}

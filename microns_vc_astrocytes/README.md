@@ -31,3 +31,19 @@ Scripts expect to run from one working directory holding the intermediate files.
 - Other glia: OPC 2.9x, oligodendrocyte 1.9x, microglia 6.8x.
 - vc-astrocytes have the same total membrane area as other astrocytes, a somatic vessel sheath, and slightly fewer distal endfeet (median 1.5 vs 2). 83% have at least one distal endfoot, and 84% of those are on a different vessel segment than the soma.
 - No prismatic cristae were seen in about 60 endfoot and perivascular fields at 8x8x40 nm; this is not conclusive at this resolution.
+
+## Refined endfoot analysis and movie (November 2026)
+
+`scripts/refined/` reruns the mesh comparison of the same 240 astrocytes with a local vessel map at 256 nm (4x finer than the volume-wide map):
+- `lumen256.py`: local lumen detection from EM at 256x256x320 nm, with nucleus voxels removed.
+- `refine.py`: per astrocyte (m1300 mesh, 45 um radius), membrane 0.15-1.0 um from the detected lumen counts as perivascular. That is about 0.7 um of the true lumen wall, because the detected lumen sits ~0.35 um inside the EM edge. Membrane closer than 0.15 um is flagged as a possible merge with endothelium; none of the 240 had any. Perivascular membrane is grouped into contact sites. Sites touching the cell-body zone (nucleus radius + 3 um) are the soma contact; the rest are endfeet. A lumen-geodesic test says whether an endfoot lies on the same vessel segment as the soma contact.
+- `summarize.py`: per-cell table `results/refined/refined_astro_summary.csv` and per-site table `results/refined/refined_sites.csv`.
+
+Refined results:
+- Membrane-level soma contact was confirmed in 82 of 120 nucleus-defined vc candidates (68%) and in 4 of 120 typical astrocytes (3%).
+- Distal endfeet: confirmed vc-astrocytes median 2 per cell (mean 2.05), typical median 2 (mean 2.00), p = 0.64. 82% of vc vs 66% of typical have at least one (Fisher p = 0.023).
+- 86% of vc-astrocyte endfeet are on a different vessel segment than the soma contact. The median distance from the nucleus is 23 um (typical 22.5 um).
+- This supersedes the earlier "fewer distal endfeet" result: once soma contact is confirmed at membrane level, vc-astrocytes keep a full endfoot repertoire and add a somatic contact.
+- 22-33% of astrocytes had no detected endfoot within 45 um; thin endfeet are lost in the lod-2 meshes, so treat absolute counts as lower bounds.
+
+`scripts/movie/` renders the split-screen movie: `export_cell.py` (mesh classes and vessel surface), `em_inset.py` (EM sections painted with the movie's colours), and `movie.html` + `frames.js` (three.js in headless Chromium, frames encoded with ffmpeg). The exemplars are typical astrocyte nucleus 292597 and vc-astrocyte nucleus 493402 (`results/refined/*_meta.json`).
