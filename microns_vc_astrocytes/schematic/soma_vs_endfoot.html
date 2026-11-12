@@ -1,0 +1,409 @@
+<title>Soma Contact vs Endfoot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&display=swap">
+<style>
+:root{
+  --bg:#f4f5f3; --paper:#ffffff; --ink:#15181c; --muted:#5c6572; --faint:#8a929d;
+  --rule:#d9dde1; --soft:#eceef0;
+  --vessel:#c3323d; --vessel-lumen:#f2dcdc; --process:#2b93ab; --process-soft:#bfe5ee;
+  --soma:#6d3fd4; --contact:#d4620f; --endfoot:#b07d00;
+  --accent:#c3323d;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){color-scheme:dark;
+    --bg:#121417; --paper:#1a1d22; --ink:#e8eaed; --muted:#a2abb6; --faint:#767f8b;
+    --rule:#2b3038; --soft:#21252b;
+    --vessel:#e05a63; --vessel-lumen:#3a2528; --process:#6fc9de; --process-soft:#1d3d46;
+    --soma:#a98cf5; --contact:#ff8a3d; --endfoot:#f5c542;
+    --accent:#e8737c;}
+}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#121417; --paper:#1a1d22; --ink:#e8eaed; --muted:#a2abb6; --faint:#767f8b;
+  --rule:#2b3038; --soft:#21252b;
+  --vessel:#e05a63; --vessel-lumen:#3a2528; --process:#6fc9de; --process-soft:#1d3d46;
+  --soma:#a98cf5; --contact:#ff8a3d; --endfoot:#f5c542;
+  --accent:#e8737c;}
+
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:44px 90px;display:grid;gap:60px}
+.prose{max-width:720px}
+header{display:grid;gap:14px;max-width:820px}
+.eyebrow{font:600 11.5px/1.2 var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(32px,5.2vw,50px)/1.06 var(--serif);margin:0;letter-spacing:-.015em;text-wrap:balance}
+h2{font:600 27px/1.2 var(--serif);margin:0 0 6px;text-wrap:balance}
+h3{font:600 16px/1.3 var(--sans);margin:0 0 6px}
+p{margin:0 0 14px}
+.lede{font:400 19px/1.55 var(--sans);color:var(--muted);margin:0}
+.meta{font:400 12.5px/1.6 var(--mono);color:var(--faint)}
+section{display:grid;gap:20px}
+figure{margin:0;display:grid;gap:12px}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);max-width:860px}
+figcaption b{color:var(--ink);font-weight:600}
+.figbox{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:18px 16px 12px;overflow-x:auto}
+svg.d{width:100%;height:auto;display:block;font-family:"IBM Plex Sans",system-ui,sans-serif}
+.figbox.wide svg.d{min-width:860px}
+.figbox.wide{scrollbar-width:thin}
+.vessel-wall{fill:var(--vessel)}
+.vessel-lumen{fill:var(--vessel-lumen)}
+.soma-body{fill:var(--soma)}
+.nucleus{fill:var(--paper);opacity:.34}
+.sheath{fill:var(--contact)}
+.foot{fill:var(--endfoot)}
+.proc{fill:none;stroke:var(--process);stroke-linecap:round;stroke-linejoin:round}
+.twig{fill:none;stroke:var(--process);stroke-linecap:round;opacity:.55}
+.dim{stroke:currentColor;stroke-width:1.2;opacity:.5;stroke-dasharray:4 3}
+.lbl,.lbl-s,.ttl,.tick{paint-order:stroke;stroke:var(--paper);stroke-width:3.5px;stroke-linejoin:round}
+.lbl{fill:currentColor;font-size:13px}
+.lbl-s{fill:currentColor;font-size:11.5px;opacity:.8}
+.lbl-k{font-size:11.5px;font-family:"IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase}
+.ttl{fill:currentColor;font-size:17px;font-weight:600;font-family:"Newsreader",Georgia,serif}
+.axis{stroke:currentColor;opacity:.3}
+.tick{fill:currentColor;font-size:11px;font-family:"IBM Plex Mono",monospace;opacity:.65}
+.grid{stroke:currentColor;opacity:.12}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:20px;align-items:start}
+.card{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:20px 22px;display:grid;gap:10px;align-content:start}
+.card.foot-c{border-top:3px solid var(--endfoot)}
+.card.soma-c{border-top:3px solid var(--contact)}
+.card .tag{font:600 11.5px/1.2 var(--mono);letter-spacing:.09em;text-transform:uppercase}
+.foot-c .tag{color:var(--endfoot)} .soma-c .tag{color:var(--contact)}
+ul{margin:0;padding-left:18px} li{margin:7px 0}
+li b{font-weight:600}
+.src{font-size:12.5px;color:var(--faint)}
+.hyp{display:grid;gap:14px}
+.h-item{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:18px 22px;display:grid;grid-template-columns:34px 1fr;gap:4px 16px}
+.h-n{font:700 20px/1 var(--serif);color:var(--accent);grid-row:span 3;padding-top:2px}
+.h-t{font:600 17px/1.3 var(--sans)}
+.h-b{font-size:15px;color:var(--muted);margin:0}
+.h-test{font-size:13.5px;color:var(--ink);background:var(--soft);border-radius:5px;padding:9px 12px;margin-top:4px}
+.h-test b{font:600 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:4px}
+.callout{border-left:3px solid var(--accent);background:var(--paper);border-top:1px solid var(--rule);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:16px 20px;border-radius:0 8px 8px 0;max-width:820px}
+.callout p:last-child{margin:0}
+.callout h3{color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:600 11.5px/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);white-space:nowrap}
+.tablewrap{overflow-x:auto;background:var(--paper);border:1px solid var(--rule);border-radius:8px}
+.key{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;color:var(--muted);padding:2px 4px 0}
+.key span{display:inline-flex;align-items:center;gap:7px}
+.key i{width:13px;height:13px;border-radius:3px;display:inline-block}
+a{color:var(--accent)} a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.refs li{font-size:13.5px;color:var(--muted)}
+.refs b{color:var(--ink)}
+.evid{font:600 10.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:3px;white-space:nowrap}
+.e-meas{background:var(--process-soft);color:var(--process)}
+.e-pub{background:var(--soft);color:var(--muted)}
+.e-hyp{background:var(--soft);color:var(--accent)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Astrocyte–vessel interfaces · MICrONS minnie65 + literature + your TRAP-seq</div>
+  <h1>A cell body on a vessel is not a big endfoot</h1>
+  <p class="lede">Endfeet are thin, remote, anucleate outposts that run on local translation and oxidative metabolism. A soma contact puts the nucleus, the bulk secretory machinery and the glycogen store directly against the basal lamina. Same cell, same number of endfeet — a different kind of interface.</p>
+  <p class="meta">Geometry measured in 240 reconstructed astrocytes · molecular evidence from published compartment proteomics · hypotheses flagged separately from findings</p>
+</header>
+
+<section>
+  <figure>
+    <div class="figbox wide">
+<svg class="d" viewBox="0 0 1200 700" role="img" aria-label="Side-by-side schematic of two astrocytes. In the typical astrocyte the cell body sits about nine micrometres from a capillary and reaches it with a thin endfoot. In the vascular-coupled astrocyte the cell body itself lies along the capillary as a large sheath, while the same number of endfeet still reach a second, separate vessel.">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="currentColor" opacity=".6"/></marker></defs>
+<text class="lbl-k" x="22" y="26" fill="var(--endfoot)">Typical astrocyte</text>
+<text class="ttl" x="22" y="52">Reaches vessels with endfeet</text>
+<rect class="vessel-wall" x="80" y="74" width="30" height="526" rx="15"/><rect class="vessel-lumen" x="86" y="80" width="18" height="514" rx="9"/>
+<rect class="vessel-wall" x="405" y="74" width="30" height="526" rx="15"/><rect class="vessel-lumen" x="411" y="80" width="18" height="514" rx="9"/>
+<g class="twig" stroke-width="2.3"><path d="M241,353 Q298,348 337,379"/><path d="M231,369 Q273,409 301,446"/><path d="M216,377 Q214,438 234,483"/><path d="M198,375 Q191,438 156,479"/><path d="M184,363 Q130,401 88,430"/><path d="M178,351 Q110,344 59,372"/><path d="M180,335 Q109,327 60,296"/><path d="M190,320 Q149,259 110,217"/><path d="M207,313 Q225,238 195,179"/><path d="M225,317 Q253,244 291,194"/><path d="M238,329 Q312,298 362,257"/><path d="M242,341 Q317,304 389,320"/></g>
+<g class="twig" stroke-width="1.4"><path d="M337,379 Q352,375 362,372"/><path d="M337,379 Q358,393 372,403"/><path d="M301,446 Q319,453 331,458"/><path d="M301,446 Q306,462 310,472"/><path d="M234,483 Q247,503 256,516"/><path d="M234,483 Q228,503 224,516"/><path d="M156,479 Q160,507 162,526"/><path d="M156,479 Q139,498 128,510"/><path d="M88,430 Q79,447 72,458"/><path d="M88,430 Q72,434 61,436"/><path d="M59,372 Q39,384 26,392"/><path d="M59,372 Q39,365 26,361"/><path d="M60,296 Q33,301 15,305"/><path d="M60,296 Q41,281 28,270"/><path d="M110,217 Q93,209 82,203"/><path d="M110,217 Q106,202 104,192"/><path d="M195,179 Q185,158 179,144"/><path d="M195,179 Q203,161 209,148"/><path d="M291,194 Q291,167 291,149"/><path d="M291,194 Q309,178 321,168"/><path d="M362,257 Q373,242 380,233"/><path d="M362,257 Q391,255 409,254"/><path d="M389,320 Q406,306 417,297"/><path d="M389,320 Q408,324 420,326"/></g>
+<path class="proc" stroke-width="8" d="M194,318 Q179,244 120,196"/>
+<path class="proc" stroke-width="7" d="M238,331 Q328,315 395,252"/>
+<path class="proc" stroke-width="8" d="M237,361 Q303,429 395,452"/>
+<path class="foot" d="M110,166 C121.7,170 123,179.5 123,196.0 C123,212.5 121.7,222 110,226 Z"/>
+<path class="foot" d="M405,222 C393.3,226 392,235.5 392,252.0 C392,268.5 393.3,278 405,282 Z"/>
+<path class="foot" d="M405,422 C393.3,426 392,435.5 392,452.0 C392,468.5 393.3,478 405,482 Z"/>
+<circle class="soma-body" cx="210" cy="345" r="35"/>
+<circle class="nucleus" cx="210" cy="345" r="19"/>
+<line class="dim" x1="110" y1="446" x2="175" y2="446" marker-start="url(#ar)" marker-end="url(#ar)"/>
+<line class="dim" x1="110" y1="424" x2="110" y2="456"/>
+<line class="dim" x1="175" y1="386" x2="175" y2="456"/>
+<text class="lbl" x="142" y="438" text-anchor="middle">9.4 µm</text>
+<text class="lbl-s" x="183" y="470">median nucleus-to-lumen gap,</text>
+<text class="lbl-s" x="183" y="484">astrocytes overall</text>
+<line class="dim" x1="122" y1="182" x2="154" y2="138"/>
+<text class="lbl" x="158" y="128" fill="var(--endfoot)">endfoot</text>
+<text class="lbl-s" x="158" y="144">88 µm² median — one patch</text>
+<text class="lbl-s" x="22" y="640">Vessel-facing membrane, whole cell</text>
+<text class="ttl" x="22" y="670" fill="var(--endfoot)">224 µm²</text>
+<text class="lbl-s" x="128" y="670">0.53% of the cell surface</text>
+<line x1="590" y1="18" x2="590" y2="604" class="axis"/>
+<text class="lbl-k" x="612" y="26" fill="var(--contact)">Vascular-coupled astrocyte</text>
+<text class="ttl" x="612" y="52">Adds a cell-body sheath, keeps the endfeet</text>
+<rect class="vessel-wall" x="670" y="74" width="30" height="526" rx="15"/><rect class="vessel-lumen" x="676" y="80" width="18" height="514" rx="9"/>
+<rect class="vessel-wall" x="995" y="74" width="30" height="526" rx="15"/><rect class="vessel-lumen" x="1001" y="80" width="18" height="514" rx="9"/>
+<path class="sheath" d="M700,228 C717.1,232 719,280.65 719,345.0 C719,409.35 717.1,458 700,462 Z"/>
+<g class="twig" stroke-width="2.3"><path d="M742,315 Q744,258 779,224"/><path d="M755,324 Q796,284 834,258"/><path d="M761,337 Q822,335 866,311"/><path d="M761,353 Q825,351 870,380"/><path d="M755,366 Q805,408 844,441"/><path d="M742,375 Q750,443 788,487"/><path d="M729,377 Q740,447 724,503"/><path d="M729,313 Q731,240 724,183"/><path d="M742,315 Q792,257 793,190"/><path d="M755,324 Q808,267 861,235"/></g>
+<g class="twig" stroke-width="1.4"><path d="M779,224 Q777,208 775,198"/><path d="M779,224 Q796,204 807,191"/><path d="M834,258 Q842,240 847,228"/><path d="M834,258 Q850,253 861,250"/><path d="M866,311 Q885,297 898,287"/><path d="M866,311 Q886,316 900,319"/><path d="M870,380 Q897,372 915,367"/><path d="M870,380 Q891,394 905,403"/><path d="M844,441 Q863,445 875,449"/><path d="M844,441 Q851,455 856,465"/><path d="M788,487 Q804,504 815,515"/><path d="M788,487 Q785,508 784,521"/><path d="M724,503 Q737,527 745,544"/><path d="M724,503 Q715,526 708,541"/><path d="M724,183 Q716,166 710,155"/><path d="M724,183 Q730,168 734,159"/><path d="M793,190 Q793,167 793,152"/><path d="M793,190 Q808,178 818,169"/><path d="M861,235 Q871,210 878,193"/><path d="M861,235 Q884,227 899,222"/></g>
+<path class="proc" stroke-width="7" d="M759,334 Q881,318 985,252"/>
+<path class="proc" stroke-width="8" d="M759,357 Q862,428 985,452"/>
+<path class="foot" d="M995,222 C983.3,226 982,235.5 982,252.0 C982,268.5 983.3,278 995,282 Z"/>
+<path class="foot" d="M995,422 C983.3,426 982,435.5 982,452.0 C982,468.5 983.3,478 995,482 Z"/>
+<path class="soma-body" d="M700,327 A35,35 0 1 1 700,363 Z"/>
+<ellipse class="nucleus" cx="730" cy="345" rx="18" ry="19"/>
+<line class="dim" x1="700" y1="500" x2="716" y2="516"/>
+<text class="lbl" x="720" y="520">&lt; 1 µm</text>
+<text class="lbl-s" x="720" y="536">nucleus to lumen</text>
+<line class="dim" x1="719" y1="246" x2="754" y2="206"/>
+<text class="lbl" x="758" y="196" fill="var(--contact)">somatic sheath</text>
+<text class="lbl-s" x="758" y="212">525 µm² median — about 10×</text>
+<text class="lbl-s" x="758" y="226">the area of one endfoot</text>
+<line class="dim" x1="985" y1="246" x2="1035" y2="214"/>
+<text class="lbl" x="1039" y="206" fill="var(--endfoot)">endfeet</text>
+<text class="lbl-s" x="1039" y="222">same number as a typical</text>
+<text class="lbl-s" x="1039" y="236">cell — and 86% are on a</text>
+<text class="lbl-s" x="1039" y="250">different vessel</text>
+<text class="lbl-s" x="612" y="640">Vessel-facing membrane, whole cell</text>
+<text class="ttl" x="612" y="670" fill="var(--contact)">715 µm²</text>
+<text class="lbl-s" x="718" y="670">1.70% — the extra is almost all cell body</text>
+<line x1="1039" y1="588" x2="1109" y2="588" stroke="currentColor" stroke-width="3"/>
+<text class="lbl-s" x="1039" y="606">10 µm</text>
+</svg>
+    </div>
+    <div class="key">
+      <span><i style="background:var(--vessel)"></i>Capillary</span>
+      <span><i style="background:var(--process)"></i>Astrocyte processes</span>
+      <span><i style="background:var(--soma)"></i>Cell body</span>
+      <span><i style="background:var(--contact)"></i>Cell body on the vessel</span>
+      <span><i style="background:var(--endfoot)"></i>Endfoot</span>
+    </div>
+    <figcaption><b>The difference is one structure, not a rearrangement.</b> Schematic, drawn to scale for soma and capillary dimensions; annotated values are medians measured in 240 reconstructed MICrONS astrocytes (82 with membrane-confirmed soma contact, 116 typical). Both cells have the same total membrane area (42,100 vs 42,600 µm²) and the same number of endfeet away from the soma (median 2 each, p = 0.64), at the same distance from the nucleus (23.6 vs 22.1 µm). What a vascular-coupled astrocyte adds is a single large contact at the cell body — and 86% of its endfeet are on a <i>different</i> vessel than that contact, so the two interfaces usually sit on different capillaries.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="prose">
+    <h2>Why the two interfaces cannot do the same job</h2>
+    <p>The asymmetry is not about size. It is about what each compartment contains, and published compartment proteomics make the split unusually concrete: when astrocyte endfeet were purified and compared with astrocyte somata, electron transport chain proteins were found at the endfeet while glycogen-handling enzymes stayed in the cell body.</p>
+  </div>
+  <div class="two">
+    <div class="card foot-c">
+      <div class="tag">Endfoot</div>
+      <h3>A remote, self-supplying outpost</h3>
+      <ul>
+        <li><b>Oxidative.</b> Electron transport chain components were detected at endfeet; the authors read this as subcellular metabolic compartmentalisation. <span class="evid e-pub">published</span></li>
+        <li><b>Translationally autonomous.</b> Endfeet carry their own mRNA and synthesise protein locally, including <span class="n">Aqp4</span>, <span class="n">Kcnj10</span>, <span class="n">Slc1a2</span> and <span class="n">Gja1</span>, with local smooth and rough ER and Golgi. <span class="evid e-pub">published</span></li>
+        <li><b>Anucleate and thin.</b> Median 88 µm² in typical cells — a patch roughly 6 µm long on a capillary. <span class="evid e-meas">measured</span></li>
+        <li><b>Scaffold-dependent.</b> AQP4 is held in the membrane by the dystrophin-associated complex (dystroglycan, α-syntrophin, dystrobrevin, dystrophin). Lose the scaffold and the interface fails in place. <span class="evid e-pub">published</span></li>
+        <li><b>Far from the nucleus.</b> A blood-borne signal arriving here is ~23 µm from the genome. <span class="evid e-meas">measured</span></li>
+      </ul>
+    </div>
+    <div class="card soma-c">
+      <div class="tag">Soma contact</div>
+      <h3>The whole cell, pressed on the vessel</h3>
+      <ul>
+        <li><b>Glycolytic / storage.</b> Glycogen-handling enzymes are distributed mostly to the soma — so a soma contact puts the cell's fuel store against the glucose source. <span class="evid e-pub">published</span></li>
+        <li><b>Nucleus at the basal lamina.</b> Under 1 µm from the lumen, versus a 9.4 µm median for astrocytes generally. <span class="evid e-meas">measured</span></li>
+        <li><b>Bulk secretory apparatus.</b> The main ER, Golgi and centrosome sit here, not in the endfoot. <span class="evid e-pub">published</span></li>
+        <li><b>Large and continuous.</b> 525 µm² median, about 10× a single endfoot, and 3× more vessel-facing membrane per cell overall. <span class="evid e-meas">measured</span></li>
+        <li><b>Cell-cycle competent.</b> After injury it is specifically the astrocytes whose somata touch vessels that proliferate; no astrocyte was seen migrating to the lesion. <span class="evid e-pub">published</span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="src">Compartment proteome: Stokum et al., <i>J Cereb Blood Flow Metab</i> 2021. Local translation: Boulay et al., <i>Cell Discovery</i> 2017. Juxtavascular proliferation: Bardehle et al., <i>Nat Neurosci</i> 2013. Full links at the end.</p>
+</section>
+
+<section>
+  <div class="prose">
+    <h2>How each interface fails</h2>
+    <p>Mapping disease onto compartments separates two very different failure modes. Endfoot disease is a <em>transport and barrier</em> problem at a structure that is already in place. Soma-contact disease is a <em>cell-fate</em> problem: the cell at the vessel changes what it is.</p>
+  </div>
+  <div class="two">
+    <div class="card foot-c">
+      <div class="tag">Endfoot failure — losing a surface</div>
+      <ul>
+        <li><b>Stroke oedema.</b> Cation flux through SUR1–TRPM4 and NCX1 in endfeet drives water influx through AQP4 and brain swelling after ischaemia. <span class="evid e-pub">published</span></li>
+        <li><b>Alzheimer's and CAA.</b> AQP4 leaves endfoot membranes around amyloid-laden vessels and rises in the surrounding neuropil; perivascular AQP4 loss tracks AD status, plaque and tangle burden, and reduced glymphatic clearance. <span class="evid e-pub">published</span></li>
+        <li><b>But not simply harmful.</b> In a prion–CAA model, displacing AQP4 from endfeet <i>prolonged</i> survival and slowed synaptic loss — depolarisation is not a one-way road to damage. <span class="evid e-pub">published</span></li>
+        <li><b>Channelopathy.</b> The endfoot is where AQP4 and Kir4.1 are concentrated, making it the structure at risk in AQP4-antibody disease and in <span class="n">KCNJ10</span> loss-of-function.</li>
+      </ul>
+    </div>
+    <div class="card soma-c">
+      <div class="tag">Soma-contact failure — changing a cell</div>
+      <ul>
+        <li><b>Proliferation after injury.</b> Juxtavascular astrocytes are the ones that re-enter the cell cycle after a stab wound; the increase in astrocyte number is local proliferation, not migration. <span class="evid e-pub">published</span></li>
+        <li><b>Barrier damage as the trigger.</b> In pathologies that disrupt vessels, proliferation stays restricted to the juxtavascular niche — implicating BBB dysfunction itself as the cue. <span class="evid e-pub">published</span></li>
+        <li><b>A homeostatic cost.</b> Cell-cycle re-entry comes with Kir4.1 downregulation, especially in juxtavascular astrocytes — the cells best placed to buffer potassium stop doing it when they divide. <span class="evid e-pub">published</span></li>
+        <li><b>Gatekeeping, proposed.</b> That juxtavascular proliferation walls off immune-cell invasion at the vascular interface is an attractive idea but, on the evidence available here, still a hypothesis. <span class="evid e-hyp">hypothesis</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <h3>The asymmetry worth noticing</h3>
+    <p>The endfoot has a molecular inventory, a scaffold, named channels and a decade of disease mechanism. The soma contact has essentially one established finding — it proliferates after injury — and almost no molecular characterisation. That gap is where your question lives, and it is why the geometry above matters: it says the soma contact is a large, common, specifically-positioned structure that nobody has profiled.</p>
+  </div>
+</section>
+
+<section>
+  <div class="prose">
+    <h2>Six hypotheses, and how to kill them</h2>
+    <p>Each follows from a specific measured or published asymmetry rather than from the general idea that contact matters.</p>
+  </div>
+  <div class="hyp">
+
+    <div class="h-item">
+      <div class="h-n">1</div>
+      <div class="h-t">Latency: the soma contact is a fast line from blood to genome</div>
+      <p class="h-b">A signal arriving at an endfoot is ~23 µm from the nucleus and must be relayed; arriving at a soma contact it is under 1 µm. If transcriptional responses to blood-borne cues are diffusion- or relay-limited, vascular-coupled astrocytes should respond sooner and more strongly than their neighbours.</p>
+      <div class="h-test"><b>Test</b> Acute systemic challenge (LPS, hypoxia, or a circulating cytokine), then nascent-transcript smFISH or intron-FISH for immediate-early and NF-κB target genes, scored per cell against measured nucleus–lumen distance. Prediction: induction amplitude falls off with distance, with the steepest difference in the first 15–30 min.</div>
+    </div>
+
+    <div class="h-item">
+      <div class="h-n">2</div>
+      <div class="h-t">Niche: the vessel is where an astrocyte must sit to divide</div>
+      <p class="h-b">Mitosis needs the nucleus and somewhere to put two daughters. Only soma-contacting astrocytes have both at the vessel, which would explain why proliferation after injury is juxtavascular without requiring a special signalling state — position, not identity.</p>
+      <div class="h-test"><b>Test</b> In a vessel-disrupting lesion, ask whether the pre-injury nucleus–lumen distance of each astrocyte predicts its probability of dividing, using live imaging or a cell-cycle reporter. The positional model predicts a sharp threshold near contact; an identity model predicts a marker that is already different before injury.</div>
+    </div>
+
+    <div class="h-item">
+      <div class="h-n">3</div>
+      <div class="h-t">Secretion: vectorial release into the perivascular space</div>
+      <p class="h-b">Endfeet translate locally but the bulk ER–Golgi route is at the soma. An astrocyte whose soma is on the basal lamina can deliver newly made secreted and membrane protein straight into the perivascular compartment, rather than trafficking it 23 µm down a process.</p>
+      <div class="h-test"><b>Test</b> Retention-using-selective-hooks (RUSH) release of a secreted astrocyte cargo, imaged at the vessel; or Golgi/centrosome position relative to the contact by correlative EM. Prediction: in vc-astrocytes the Golgi is polarised toward the vessel face.</div>
+    </div>
+
+    <div class="h-item">
+      <div class="h-n">4</div>
+      <div class="h-t">Fuel logistics: the glycogen store sits on the glucose source</div>
+      <p class="h-b">Glycogen enzymes are a soma compartment and the electron transport chain is an endfoot compartment. Putting the soma on the vessel co-locates storage with supply, which should change how fast the cell can mobilise glycogen during activity or hypoglycaemia.</p>
+      <div class="h-test"><b>Test</b> Glycogen histochemistry or a genetically encoded glucose/lactate sensor during an insulin-hypoglycaemia or high-activity challenge, comparing vc and non-vc astrocytes in the same field.</div>
+    </div>
+
+    <div class="h-item">
+      <div class="h-n">5</div>
+      <div class="h-t">Real estate: the soma competes with microglia for the vessel surface</div>
+      <p class="h-b">Microglial somata show the strongest vessel-contact enrichment of any cell type measured here (6.8× chance, versus 2.5× for astrocytes), and microglia are known to reach the vasculature through gaps between astrocyte endfeet. A 525 µm² astrocyte sheath is a large occupancy of exactly that surface.</p>
+      <div class="h-test"><b>Test</b> In the same EM volume, ask whether astrocyte soma contacts and microglial contacts are spatially exclusive along individual capillaries, against a null that randomises positions along the same vessel. This is directly answerable in the dataset already reconstructed.</div>
+    </div>
+
+    <div class="h-item">
+      <div class="h-n">6</div>
+      <div class="h-t">Mixture: a specialised population diluted by chance contacts</div>
+      <p class="h-b">Soma contact is only 2.5× more common than chance placement predicts, so roughly 40% of contacting astrocytes are expected to be touching a vessel incidentally. Any functional measure should therefore be bimodal, and group means will understate the real effect.</p>
+      <div class="h-test"><b>Test</b> Treat contact as a graded variable — area and circumferential coverage of the sheath, not a yes/no label — and look for a discontinuity. Large, wrapping sheaths should separate from small incidental appositions on any marker that works.</div>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <div class="prose">
+    <h2>What your TRAP-seq can and cannot say yet</h2>
+    <p>The JD130 (pan-astrocyte) versus JD1884 (vcAst) comparison was the obvious place to look for the molecular signature of a soma contact. It cannot currently be used for that, and the reason is visible in one plot.</p>
+  </div>
+  <figure>
+    <div class="figbox">
+<svg class="d" viewBox="0 0 780 320" role="img" aria-label="Dot plot of median log2 fold change for marker panels of six brain cell types. Astrocyte markers are shifted down, every other cell type is shifted up, forming a purity gradient rather than a biological pathway.">
+  <line class="axis" x1="318" y1="36" x2="318" y2="258" stroke-dasharray="4 3"/>
+  <text class="tick" x="318" y="30" text-anchor="middle">no change</text>
+  <g>
+    <line class="grid" x1="206" y1="40" x2="206" y2="258"/>
+    <line class="grid" x1="430" y1="40" x2="430" y2="258"/>
+    <line class="grid" x1="542" y1="40" x2="542" y2="258"/>
+    <line class="grid" x1="654" y1="40" x2="654" y2="258"/>
+  </g>
+  <line class="axis" x1="150" y1="258" x2="690" y2="258"/>
+  <g class="tick" text-anchor="middle">
+    <text x="206" y="276">−1</text><text x="318" y="276">0</text><text x="430" y="276">+1</text>
+    <text x="542" y="276">+2</text><text x="654" y="276">+3</text>
+  </g>
+  <text class="tick" x="420" y="300" text-anchor="middle">median log₂ fold change, vcAst IP ÷ pan-astrocyte IP</text>
+
+  <g class="lbl" text-anchor="end">
+    <text x="138" y="62">Astrocyte</text>
+    <text x="138" y="97">Endothelial</text>
+    <text x="138" y="132">Mural / pericyte</text>
+    <text x="138" y="167">Microglia</text>
+    <text x="138" y="202">Neuron</text>
+    <text x="138" y="237">Oligodendrocyte</text>
+  </g>
+  <g class="lbl-s" text-anchor="end">
+    <text x="138" y="76">n = 40</text><text x="138" y="111">n = 10</text><text x="138" y="146">n = 7</text>
+    <text x="138" y="181">n = 13</text><text x="138" y="216">n = 24</text><text x="138" y="251">n = 13</text>
+  </g>
+
+  <g>
+    <line x1="318" y1="58" x2="215" y2="58" stroke="var(--process)" stroke-width="2.5"/>
+    <circle cx="215" cy="58" r="7" fill="var(--process)"/>
+    <text class="tick" x="196" y="62" text-anchor="end" fill="var(--process)">−0.92</text>
+
+    <line x1="318" y1="93" x2="330" y2="93" stroke="currentColor" stroke-width="2.5" opacity=".45"/>
+    <circle cx="330" cy="93" r="7" fill="currentColor" opacity=".45"/>
+    <text class="tick" x="348" y="97">+0.11</text>
+
+    <line x1="318" y1="128" x2="425" y2="128" stroke="currentColor" stroke-width="2.5" opacity=".45"/>
+    <circle cx="425" cy="128" r="7" fill="currentColor" opacity=".45"/>
+    <text class="tick" x="443" y="132">+0.96</text>
+
+    <line x1="318" y1="163" x2="531" y2="163" stroke="var(--vessel)" stroke-width="2.5"/>
+    <circle cx="531" cy="163" r="7" fill="var(--vessel)"/>
+    <text class="tick" x="549" y="167" fill="var(--vessel)">+1.90</text>
+
+    <line x1="318" y1="198" x2="555" y2="198" stroke="var(--vessel)" stroke-width="2.5"/>
+    <circle cx="555" cy="198" r="7" fill="var(--vessel)"/>
+    <text class="tick" x="573" y="202" fill="var(--vessel)">+2.12</text>
+
+    <line x1="318" y1="233" x2="637" y2="233" stroke="var(--vessel)" stroke-width="2.5"/>
+    <circle cx="637" cy="233" r="7" fill="var(--vessel)"/>
+    <text class="tick" x="655" y="237" fill="var(--vessel)">+2.85</text>
+  </g>
+</svg>
+    </div>
+    <figcaption><b>Every astrocyte marker goes down; every other cell type goes up.</b> 39 of 40 astrocyte-specific genes are lower in the vcAst immunoprecipitate (median −0.92, bootstrap 95% CI −1.05 to −0.74), while neuron, oligodendrocyte and microglia panels all rise. That is the signature of a less pure pull-down, not of a pathway. A two-component mixing model puts the JD130 IP at roughly 85–93% astrocyte and the JD1884 IP at roughly 45–49% — astrocyte signal in the vcAst sample is about 55% of that in the pan sample. Note the one panel that does <i>not</i> rise: endothelial markers are flat (+0.11). If vcAst were dragging vessel material into the IP, endothelium is exactly what should have come with it.</figcaption>
+  </figure>
+
+  <div class="prose">
+    <h3>What survives a proper correction</h3>
+    <p>Because the contaminating signal inflates broadly-expressed genes and deflates astrocyte-specific ones, any gene's apparent fold change mostly reports how astrocyte-restricted it is. Restricting to astrocyte-specific genes and renormalising on astrocyte content (median-of-ratios size factors computed only on those genes) removes the artefact — and leaves very little.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Gene</th><th>Corrected log₂FC, vcAst</th><th>p</th><th>FDR</th><th>Reading</th></tr></thead>
+      <tbody>
+        <tr><td class="n">Utrn</td><td class="n">+2.55</td><td class="n">0.001</td><td class="n">0.06</td><td>Utrophin — AQP4-anchoring complex</td></tr>
+        <tr><td class="n">Dag1</td><td class="n">+1.03</td><td class="n">0.009</td><td class="n">0.06</td><td>Dystroglycan — same complex</td></tr>
+        <tr><td class="n">Kcnj10</td><td class="n">+0.76</td><td class="n">0.041</td><td class="n">0.06</td><td>Kir4.1</td></tr>
+        <tr><td class="n">Slc1a2</td><td class="n">+0.59</td><td class="n">0.048</td><td class="n">0.06</td><td>GLT-1</td></tr>
+        <tr><td class="n">Gfap</td><td class="n">−1.91</td><td class="n">0.004</td><td class="n">0.06</td><td>Lower GFAP in vcAst</td></tr>
+        <tr><td class="n">Cbs</td><td class="n">−0.79</td><td class="n">0.002</td><td class="n">0.06</td><td>Cystathionine β-synthase</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figcaption>Striatum, 4 vs 4 replicates, 58 astrocyte-specific genes tested. <b>Nothing reaches FDR &lt; 0.05</b> — these are the strongest nominal signals only. They are listed because the direction is coherent (two components of the dystrophin-associated complex that anchors AQP4 go up together, GFAP goes down), not because they are established. With n = 4 and a 2-fold purity difference between groups, this experiment is underpowered for anything subtler than the contamination itself.</figcaption>
+
+  <div class="callout">
+    <h3>Before this dataset can answer the question</h3>
+    <p>Three things would fix it: an <b>input / total-RNA sample per animal</b>, which makes composition estimable rather than assumed; a <b>purity-matched comparison</b>, since a 2-fold difference in IP specificity cannot be normalised away post hoc; and <b>more replicates</b>, because the effects worth finding here are smaller than the artefact currently sitting on top of them. One more check worth running first: if either line uses a <span class="n">Gfap</span>-based driver, the GFAP result above is circular and should be dropped.</p>
+  </div>
+</section>
+
+<section class="prose">
+  <h2>Sources</h2>
+  <ul class="refs">
+    <li><b>Compartment proteome (endfoot vs soma).</b> Stokum, Shim, Huang, Kane, Smith, Gerzanich &amp; Simard, "A large portion of the astrocyte proteome is dedicated to perivascular endfeet, including critical components of the electron transport chain", <i>J Cereb Blood Flow Metab</i> 2021. <a href="https://doi.org/10.1177/0271678X211004182" target="_blank" rel="noopener">doi:10.1177/0271678X211004182</a></li>
+    <li><b>Local translation at the gliovascular interface.</b> Boulay et al., "Translation in astrocyte distal processes sets molecular heterogeneity at the gliovascular interface", <i>Cell Discovery</i> 2017. <a href="https://www.nature.com/articles/celldisc20175" target="_blank" rel="noopener">celldisc20175</a></li>
+    <li><b>Juxtavascular proliferation.</b> Bardehle et al., "Live imaging of astrocyte responses to acute injury reveals selective juxtavascular proliferation", <i>Nat Neurosci</i> 2013. <a href="https://www.nature.com/articles/nn.3371" target="_blank" rel="noopener">nn.3371</a></li>
+    <li><b>Kir4.1 and cell-cycle re-entry.</b> Götz et al., "Heterogeneity of astrocytes: electrophysiological properties of juxtavascular astrocytes before and after brain injury", <i>Glia</i> 2021. <a href="https://onlinelibrary.wiley.com/doi/10.1002/glia.23900" target="_blank" rel="noopener">glia.23900</a></li>
+    <li><b>Endfoot oedema mechanism.</b> "Cation flux through SUR1-TRPM4 and NCX1 in astrocyte endfeet induces water influx through AQP4 and brain swelling after ischemic stroke", <i>Sci Signal</i>. <a href="https://www.science.org/doi/10.1126/scisignal.add6364" target="_blank" rel="noopener">scisignal.add6364</a></li>
+    <li><b>Endothelial-to-endfoot signalling.</b> "Molecular profiling of brain endothelial cell to astrocyte endfoot communication in mouse and human", <i>Nat Commun</i> 2025. <a href="https://www.nature.com/articles/s41467-025-65487-4" target="_blank" rel="noopener">s41467-025-65487-4</a></li>
+    <li><b>Endfoot review.</b> "Astrocyte Endfeet in Brain Function and Pathology: Open Questions", <i>Annu Rev Neurosci</i>. <a href="https://www.annualreviews.org/content/journals/10.1146/annurev-neuro-091922-031205" target="_blank" rel="noopener">annurev-neuro-091922-031205</a></li>
+    <li><b>All astrocytes contact vessels.</b> Hösli et al., "Direct vascular contact is a hallmark of cerebral astrocytes", <i>Cell Rep</i> 2022. <a href="https://www.sciencedirect.com/science/article/pii/S2211124722003473" target="_blank" rel="noopener">S2211124722003473</a></li>
+    <li><b>Microglia at the vessel wall.</b> Morris, Foster, Sutherland &amp; Grubb, "Microglia contact cerebral vasculature through gaps between astrocyte endfeet", <i>JCBFM</i> 2024. <a href="https://doi.org/10.1177/0271678X241280775" target="_blank" rel="noopener">doi:10.1177/0271678X241280775</a></li>
+  </ul>
+  <p class="src">Measured values are from the MICrONS minnie65 reconstruction described in the companion analysis (240 astrocytes; vessel lumens detected in EM at 256 nm). Literature statements were gathered through web search because journal and PubMed hosts are blocked from this environment; the primary PDFs were not read directly, so figure-level details should be checked against the originals before use in a manuscript.</p>
+</section>
+
+</div>
