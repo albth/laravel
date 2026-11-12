@@ -67,3 +67,37 @@ median-of-ratios size factors on those genes only (`astro_normalised_DE.csv`,
 * `load.py` — loads both workbooks, flips the sign so positive = vcAst.
 * `astro_specific_adj.csv` — astrocyte-specific genes with the flat offset applied.
 * `astro_normalised_DE.csv` — astrocyte-content-normalised DE with BH FDR.
+
+## Simplified presentation figures
+
+`simple_figs.py` rebuilds the two QC figures as one-argument-each slides from
+`ctx.xlsx` / `str.xlsx` (striatal counts; the cortical workbook is pre-filtered
+to |log2FC| > 1 and cannot support the marker panels).
+
+* `figures/Fig1_purity_simple.*` — **"the two pull-downs differ in purity, not
+  in biology"**: per-sample astrocyte signal (pan 78/87/128/107 vs VC
+  54/61/53/43, % of mean pan sample), median log2FC per cell class
+  (Astrocyte −0.92, Endothelial +0.11, Mural +1.12, Microglia +1.99,
+  Neuron +2.12, Oligodendrocyte +2.91), and the deconvolution estimate
+  (96% vs 61%). Endothelium being flat is the diagnostic: this is general
+  background, not vascular carry-over.
+* `figures/Fig2_survivors_simple.*` — **"correcting for dilution leaves five
+  interpretable genes"**: the attrition funnel 395 → 147 → 121 → 121 → 120 → 5
+  and the five survivors before and after subtracting the −0.66 offset.
+
+Verified against the raw striatal table:
+
+| gene | log2FC | FDR | after −0.66 |
+|---|---|---|---|
+| St6galnac5 | +0.76 | 0.0023 | +1.42 |
+| Gabrb1 | +0.44 | 0.033 | +1.10 |
+| Ncan | +0.24 | 0.57 | +0.90 |
+| Plscr4 | −1.90 | 3.5e-13 | −1.24 |
+| Gfap | −2.77 | 3.3e-21 | −2.11 |
+
+*Ncan* does not reach significance on its own; it clears the bar only after
+correction. The offset itself is panel-dependent: −0.66 (their panel, 63%
+purity), −0.74 (core 8 markers, 60%), −0.92 (the 40-gene panel here, 53%).
+
+Presentation spec, scripts and the deconvolution explainer:
+https://claude.ai/artifact/MTNuRiZ8x4VGte14o61FQu
